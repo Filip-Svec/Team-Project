@@ -7,6 +7,32 @@
     <title>Document</title>
 </head>
 <body>
-    <p>hejjjasddsfased</p>
+    <div class="container">
+        <form action="index.php" method="get">
+            <div class="mb-3">
+                <label for="search" class="form-label">Zadajte slovo:</label>
+                <input type="text" id="search" name="search" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="language">Vyberte jazyk (v ktorom ste zadali slovo): </label>
+                <select name="language_code" id="language">
+                    <option value="sk">Slovenčina</option>
+                    <option value="en">Angličtina</option>
+                </select>
+                <br>
+                <label >Dbajte na to, aby bolo slovo v takom istom jazyku, aký ste vybrali (napr. anglické slovo nie je v slovenskom slovníku) (bod 2) b) v zadaní)</label>
+            </div>
+            <div class="mb-3">
+            <label for="translation">Vyber metódu: </label>
+                <select name="translation" id="translation">
+                    <option value="translate">Prelož</option>
+                    <option value="explain">Vysvetli</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <input type="submit" class="btn btn-success" value="Vyhľadaj">
+            </div>
+        </form>
+    </div>
 </body>
 </html>
