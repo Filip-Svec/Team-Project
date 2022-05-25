@@ -17,74 +17,89 @@ require("config.php");
 //     echo "Connection failed: " . $e->getMessage();
 // }
 
-//------------------------------------------------------------------
 
+//Vypocet a pristupovanie k Octave, Vystup ulozeny do output.json
 if ($_POST['rSK'] != null || $_POST['rEN'] != null) {
 
-    echo (float)$_POST['rSK'];
-    // $inputObstacle = "";                //r
-    // if ($_POST['rSK'] != null) {
-    //     if ((float)($_POST['rSK']) > 2){
-    //         $inputObstacle = 2;
-    //     }
-    //     $inputObstacle = $_POST['commandSK'];
-    // }
-    // if ($_POST['rEN'] != null) {
-    //     $inputObstacle = $_POST['commandEN'];
-    // }
+    //Vyska prekazky 'r'
+    $inputObstacle = "";                //r
+    if ($_POST['rSK'] != null) {
+        if ((float)($_POST['rSK']) > 2){
+            $inputObstacle = "2";
+        }
+        else if ((float)($_POST['rSK']) < -2){
+            $inputObstacle = "-2";
+        } else {
+            $inputObstacle = $_POST['rSK'];
+        }
+    }
+    if ($_POST['rEN'] != null) {
+        if ((float)($_POST['rEN']) > 2){
+            $inputObstacle = "2";
+        }
+        else if ((float)($_POST['rEN']) < -2){
+            $inputObstacle = "-2";
+        } else {
+            $inputObstacle = $_POST['rEN'];
+        }
+    }
 
+    echo $inputObstacle;
+    //Octave vypocet
+    $output = "";
+    echo exec('octave-cli --eval "pkg load control; m1 = 2500; m2 = 320;
+    k1 = 80000; k2 = 500000;
+    b1 = 350; b2 = 15020;
+    A=[0 1 0 0;-(b1*b2)/(m1*m2) 0 ((b1/m1)*((b1/m1)+(b1/m2)+(b2/m2)))-(k1/m1) -(b1/m1);b2/m2 0 -((b1/m1)+(b1/m2)+(b2/m2)) 1;k2/m2 0 -((k1/m1)+(k1/m2)+(k2/m2)) 0];
+    B=[0 0;1/m1 (b1*b2)/(m1*m2);0 -(b2/m2);(1/m1)+(1/m2) -(k2/m2)];
+    C=[0 0 1 0]; D=[0 0];
+    Aa = [[A,[0 0 0 0]\'];[C, 0]];
+    Ba = [B;[0 0]];
+    Ca = [C,0]; Da = D;
+    K = [0 2.3e6 5e8 0 8e6];
+    sys = ss(Aa-Ba(:,1)*K,Ba,Ca,Da);
+    t = 0:0.01:5;
+    r="'.$inputObstacle.'";
+    initX1=0; initX1d=0;
+    initX2=0; initX2d=0;
+    [y,t,x]=lsim(sys*[0;1],r*ones(size(t)),t,[initX1;initX1d;initX2;initX2d;0]); x"', $outputOctave);
 
-    // $output = "";
-    // echo exec('octave-cli --eval "pkg load control; m1 = 2500; m2 = 320;
-    // k1 = 80000; k2 = 500000;
-    // b1 = 350; b2 = 15020;
-    // A=[0 1 0 0;-(b1*b2)/(m1*m2) 0 ((b1/m1)*((b1/m1)+(b1/m2)+(b2/m2)))-(k1/m1) -(b1/m1);b2/m2 0 -((b1/m1)+(b1/m2)+(b2/m2)) 1;k2/m2 0 -((k1/m1)+(k1/m2)+(k2/m2)) 0];
-    // B=[0 0;1/m1 (b1*b2)/(m1*m2);0 -(b2/m2);(1/m1)+(1/m2) -(k2/m2)];
-    // C=[0 0 1 0]; D=[0 0];
-    // Aa = [[A,[0 0 0 0]\'];[C, 0]];
-    // Ba = [B;[0 0]];
-    // Ca = [C,0]; Da = D;
-    // K = [0 2.3e6 5e8 0 8e6];
-    // sys = ss(Aa-Ba(:,1)*K,Ba,Ca,Da);
-    // t = 0:0.01:5;
-    // r =-0.9;
-    // initX1=0; initX1d=0;
-    // initX2=0; initX2d=0;
-    // [y,t,x]=lsim(sys*[0;1],r*ones(size(t)),t,[initX1;initX1d;initX2;initX2d;0]); x"', $output);
-
-    // $sizeOutput = 503;
-    // $parsedArray = array();
-    // $time = 0;
-    // for ($i = 2; $i < $sizeOutput; $i++) {
-    //     //filter dat do array
-    //     $splitOutput = explode(" ", $output[$i]);
-    //     $splitOutput = array_filter($splitOutput);
-    //     $splitOutput = array_values($splitOutput);
-    //     //naplni array
-    //     $time = round($time + 0.01, 3);
-    //     $parsedArray[$i - 2] = array('wheel' => $splitOutput[2], 'car' => $splitOutput[0], 'time' => $time);
-    // }
-    // $response['values'] = $parsedArray;
-    // $fp = fopen('output.json', 'w');
-    // fwrite($fp, json_encode($response));
-    // fclose($fp);
+    var_dump($outputOctave);
+    //Parsovanie dat(x1,x3) z vektora 'x'
+    $sizeOutput = 503;
+    $parsedArray = array();
+    $time = 0;
+    for ($i = 2; $i < $sizeOutput; $i++) {
+        //filter dat do array
+        $splitOutput = explode(" ", $outputOctave[$i]);
+        $splitOutput = array_filter($splitOutput);
+        $splitOutput = array_values($splitOutput);
+        //naplni array
+        $time = round($time + 0.01, 3);
+        $parsedArray[$i - 2] = array('wheel' => $splitOutput[2], 'car' => $splitOutput[0], 'time' => $time);
+    }
+    $response['values'] = $parsedArray;
+    //Zapis do json
+    $fp = fopen('output.json', 'w');
+    fwrite($fp, json_encode($response));
+    fclose($fp);
 }
 
+//Vypocet commandu cez Octave
 if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
 
-    $input = "";
+    $inputCommand = "";
     if ($_POST['commandSK'] != null) {
-        $input = $_POST['commandSK'];
+        $inputCommand = $_POST['commandSK'];
     }
     if ($_POST['commandEN'] != null) {
-        $input = $_POST['commandEN'];
+        $inputCommand = $_POST['commandEN'];
     }
-    exec('octave-cli --eval "pkg load control;"'.$input.'""', $outCommandValue);
+    exec('octave-cli --eval "pkg load control;"'.$inputCommand.'""', $outCommandValue);
     echo $outCommandValue[0];
 }
 
 ?>
-
 
 
 <!DOCTYPE html>
@@ -142,7 +157,7 @@ if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
                     </div>
 
                     <!-- Form pre zadavanie comandov na vypocitanie cez Octave (posle command napr. '1+1' octave vrati spat vysledok,
-        ten treba niekam vypisat, mozno staci len pod form TODO)-->
+                    ten treba niekam vypisat, mozno staci len pod form TODO)-->
                     <div class="d-flex justify-content-center">
                         <form action="index.php" method="POST" enctype="multipart/form-data">
                             <div class="mb-3">
@@ -181,13 +196,10 @@ if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
                     <!-- toto nehat uplne na konci  -->
                     <div class="d-flex justify-content-center">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="graphShow">
+                            <input class="form-check-input" type="checkbox" id="graphShowSK">
                             <label class="form-check-label" for="graphShow"> Ukáž graf</label><br>
-                            <input class="form-check-input" type="checkbox" id="animationShow">
-                            <label class="form-check-label" for="animationShow"> Ukáž animáciu</label><br>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -256,10 +268,8 @@ if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
 
                     <div class="d-flex justify-content-center">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="graphShow">
+                            <input class="form-check-input" type="checkbox" id="graphShowEN">
                             <label class="form-check-label" for="graphShow"> Show graph</label><br>
-                            <input class="form-check-input" type="checkbox" id="animationShow">
-                            <label class="form-check-label" for="animationShow"> Show animation</label><br>
                         </div>
                     </div>
                     <!-- Sem tlacitko na stiahnutie logov (a.k.a. stiahnut udaje z databazy ako CSV subor.) -->
