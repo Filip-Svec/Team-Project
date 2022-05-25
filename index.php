@@ -8,28 +8,30 @@ error_reporting(E_ALL);
 require("config.php");
 
 //databaza pripojenie, ak bude treba
-// try {
-//     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-//     // set the pdo error mode to exception
-//     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-//     //echo "Connected successfully"; 
-// } catch (PDOException $e) {
-//     echo "Connection failed: " . $e->getMessage();
-// }
+try {
+    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+    // set the pdo error mode to exception
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    //echo "Connected successfully"; 
+} catch (PDOException $e) {
+    echo "Connection failed: " . $e->getMessage();
+}
 
-if ($_POST['key'] == "APIkey2000") {
+//Overenie dopytu cez API key
+if ($_POST['key'] == $APIkey) {
 
     //Vypocet a pristupovanie k Octave, Vystup ulozeny do output.json
     if ($_POST['rSK'] != null || $_POST['rEN'] != null) {
 
         //Vyska prekazky 'r'
+        $infoObstacle = "success";
         $inputObstacle = "";                //r
         if ($_POST['rSK'] != null) {
             if ((float)($_POST['rSK']) > 2) {
                 $inputObstacle = "2";
             } else if ((float)($_POST['rSK']) < -2) {
                 $inputObstacle = "-2";
-            } else if ((float)($_POST['rSK']) == 0) {
+            } else if (($_POST['rSK']) == "0") {
                 $inputObstacle = "0.1";
             } else {
                 $inputObstacle = $_POST['rSK'];
@@ -40,17 +42,36 @@ if ($_POST['key'] == "APIkey2000") {
                 $inputObstacle = "2";
             } else if ((float)($_POST['rEN']) < -2) {
                 $inputObstacle = "-2";
-            } else if ((float)($_POST['rEN']) == 0) {
+            } else if (($_POST['rEN']) == "0") {
                 $inputObstacle = "0.1";
             } else {
                 $inputObstacle = $_POST['rEN'];
             }
         }
 
-        echo $inputObstacle;
-        //Octave vypocet
-        $output = "";
-        echo exec('octave-cli --eval "pkg load control; m1 = 2500; m2 = 320;
+        $errorFlag = 0;
+        // Zapisovanie Logov do databazy
+        if (floatval($inputObstacle) == 0) {
+            $infoObstacle = "error - Not number";
+            $errorFlag = 1;
+        } else if (strpos($inputObstacle, ",")) {
+            $errorFlag = 1;
+            $infoObstacle = "error - used ',' instead of '.'";
+        }
+
+        $sql = "INSERT INTO requests (date, obstacleHeight, info) VALUES (?,?,?)";
+        $stmt = $conn->prepare($sql);
+        //echo substr($weatherResponse->location->localtime,10). ":00";
+        $result = $stmt->execute([
+            date("Y-m-d h:i:sa"), strval($inputObstacle), $infoObstacle
+        ]);
+
+        // Ak nenastal error vygeneruj nove data
+        if ($errorFlag == 0) {
+
+            //Octave vypocet
+            $output = "";
+            echo exec('octave-cli --eval "pkg load control; m1 = 2500; m2 = 320;
     k1 = 80000; k2 = 500000;
     b1 = 350; b2 = 15020;
     A=[0 1 0 0;-(b1*b2)/(m1*m2) 0 ((b1/m1)*((b1/m1)+(b1/m2)+(b2/m2)))-(k1/m1) -(b1/m1);b2/m2 0 -((b1/m1)+(b1/m2)+(b2/m2)) 1;k2/m2 0 -((k1/m1)+(k1/m2)+(k2/m2)) 0];
@@ -67,29 +88,33 @@ if ($_POST['key'] == "APIkey2000") {
     initX2=0; initX2d=0;
     [y,t,x]=lsim(sys*[0;1],r*ones(size(t)),t,[initX1;initX1d;initX2;initX2d;0]); x"', $outputOctave);
 
-        //Parsovanie dat(x1,x3) z vektora 'x'
-        $sizeOutput = 503;
-        $parsedArray = array();
-        $time = 0;
-        for ($i = 2; $i < $sizeOutput; $i++) {
-            //filter dat do array
-            $splitOutput = explode(" ", $outputOctave[$i]);
-            $splitOutput = array_filter($splitOutput);
-            $splitOutput = array_values($splitOutput);
-            //naplni array
-            $time = round($time + 0.01, 3);
-            $parsedArray[$i - 2] = array('wheel' => $splitOutput[2], 'car' => $splitOutput[0], 'time' => $time);
+            //Parsovanie dat(x1,x3) z vektora 'x'
+            $sizeOutput = 503;
+            $parsedArray = array();
+            $time = 0;
+            for ($i = 2; $i < $sizeOutput; $i++) {
+                //filter dat do array
+                $splitOutput = explode(" ", $outputOctave[$i]);
+                $splitOutput = array_filter($splitOutput);
+                $splitOutput = array_values($splitOutput);
+                //naplni array
+                $time = round($time + 0.01, 3);
+                $parsedArray[$i - 2] = array('wheel' => $splitOutput[2], 'car' => $splitOutput[0], 'time' => $time);
+            }
+            $response['values'] = $parsedArray;
+            //Zapis do json
+            $fp = fopen('output.json', 'w');
+            fwrite($fp, json_encode($response));
+            fclose($fp);
+        } else {
+            echo '<script>alert("Wrong Input")</script>';
         }
-        $response['values'] = $parsedArray;
-        //Zapis do json
-        $fp = fopen('output.json', 'w');
-        fwrite($fp, json_encode($response));
-        fclose($fp);
     }
 
     //Vypocet commandu cez Octave
     if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
 
+        $infoCommand = "success";
         $inputCommand = "";
         if ($_POST['commandSK'] != null) {
             $inputCommand = $_POST['commandSK'];
@@ -97,8 +122,29 @@ if ($_POST['key'] == "APIkey2000") {
         if ($_POST['commandEN'] != null) {
             $inputCommand = $_POST['commandEN'];
         }
-        exec('octave-cli --eval "pkg load control;"' . $inputCommand . '""', $outCommandValue);
-        echo $outCommandValue[0];
+
+        $errorFlag = 0;
+        // Zapisovanie Logov do databazy
+        if (floatval($inputCommand) == 0) {
+            $infoCommand = "error - Not number";
+            $errorFlag = 1;
+        } else if (strpos($inputCommand, ",")) {
+            $errorFlag = 1;
+            $infoCommand = "error - used ',' instead of '.'";
+        }
+
+        $sql = "INSERT INTO requests (date, command, info) VALUES (?,?,?)";
+        $stmt = $conn->prepare($sql);
+        //echo substr($weatherResponse->location->localtime,10). ":00";
+        $result = $stmt->execute([
+            date("Y-m-d h:i:sa"), strval($inputCommand), $infoCommand
+        ]);
+
+        if ($errorFlag == 0){
+            exec('octave-cli --eval "pkg load control;"' . $inputCommand . '""', $outCommandValue);
+        } else {
+            echo '<script>alert("Wrong Input")</script>';
+        }
     }
 }
 
@@ -245,7 +291,7 @@ if ($_POST['key'] == "APIkey2000") {
                     </div>
 
                     <!-- Form pre zadavanie comandov na vypocitanie cez Octave (posle command napr. '1+1' octave vrati spat vysledok,
-        ten treba niekam vypisat, mozno staci len pod form TODO)-->
+                     ten treba niekam vypisat, mozno staci len pod form TODO)-->
                     <div class="d-flex justify-content-center">
                         <form action="index.php" method="POST" enctype="multipart/form-data">
                             <div class="mb-3">
@@ -321,7 +367,7 @@ if ($_POST['key'] == "APIkey2000") {
 
             //Skrytie grafu dorobit tie id a upravit divka aby mali style display: none
             // id checkbox pridat
-            // var hide = document.getElementById('graphShow');
+            //var hide = document.getElementById('graphShow');
             // hide.addEventListener('click', () => {
             //     // id canvasu pridat
             //     var divEle = document.getElementById('divCanvas');
