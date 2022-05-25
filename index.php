@@ -17,37 +17,40 @@ require("config.php");
 //     echo "Connection failed: " . $e->getMessage();
 // }
 
+if ($_POST['key'] == "APIkey2000") {
 
-//Vypocet a pristupovanie k Octave, Vystup ulozeny do output.json
-if ($_POST['rSK'] != null || $_POST['rEN'] != null) {
+    //Vypocet a pristupovanie k Octave, Vystup ulozeny do output.json
+    if ($_POST['rSK'] != null || $_POST['rEN'] != null) {
 
-    //Vyska prekazky 'r'
-    $inputObstacle = "";                //r
-    if ($_POST['rSK'] != null) {
-        if ((float)($_POST['rSK']) > 2){
-            $inputObstacle = "2";
+        //Vyska prekazky 'r'
+        $inputObstacle = "";                //r
+        if ($_POST['rSK'] != null) {
+            if ((float)($_POST['rSK']) > 2) {
+                $inputObstacle = "2";
+            } else if ((float)($_POST['rSK']) < -2) {
+                $inputObstacle = "-2";
+            } else if ((float)($_POST['rSK']) == 0) {
+                $inputObstacle = "0.1";
+            } else {
+                $inputObstacle = $_POST['rSK'];
+            }
         }
-        else if ((float)($_POST['rSK']) < -2){
-            $inputObstacle = "-2";
-        } else {
-            $inputObstacle = $_POST['rSK'];
+        if ($_POST['rEN'] != null) {
+            if ((float)($_POST['rEN']) > 2) {
+                $inputObstacle = "2";
+            } else if ((float)($_POST['rEN']) < -2) {
+                $inputObstacle = "-2";
+            } else if ((float)($_POST['rEN']) == 0) {
+                $inputObstacle = "0.1";
+            } else {
+                $inputObstacle = $_POST['rEN'];
+            }
         }
-    }
-    if ($_POST['rEN'] != null) {
-        if ((float)($_POST['rEN']) > 2){
-            $inputObstacle = "2";
-        }
-        else if ((float)($_POST['rEN']) < -2){
-            $inputObstacle = "-2";
-        } else {
-            $inputObstacle = $_POST['rEN'];
-        }
-    }
 
-    echo $inputObstacle;
-    //Octave vypocet
-    $output = "";
-    echo exec('octave-cli --eval "pkg load control; m1 = 2500; m2 = 320;
+        echo $inputObstacle;
+        //Octave vypocet
+        $output = "";
+        echo exec('octave-cli --eval "pkg load control; m1 = 2500; m2 = 320;
     k1 = 80000; k2 = 500000;
     b1 = 350; b2 = 15020;
     A=[0 1 0 0;-(b1*b2)/(m1*m2) 0 ((b1/m1)*((b1/m1)+(b1/m2)+(b2/m2)))-(k1/m1) -(b1/m1);b2/m2 0 -((b1/m1)+(b1/m2)+(b2/m2)) 1;k2/m2 0 -((k1/m1)+(k1/m2)+(k2/m2)) 0];
@@ -59,44 +62,44 @@ if ($_POST['rSK'] != null || $_POST['rEN'] != null) {
     K = [0 2.3e6 5e8 0 8e6];
     sys = ss(Aa-Ba(:,1)*K,Ba,Ca,Da);
     t = 0:0.01:5;
-    r="'.$inputObstacle.'";
+    r="' . $inputObstacle . '";
     initX1=0; initX1d=0;
     initX2=0; initX2d=0;
     [y,t,x]=lsim(sys*[0;1],r*ones(size(t)),t,[initX1;initX1d;initX2;initX2d;0]); x"', $outputOctave);
 
-    var_dump($outputOctave);
-    //Parsovanie dat(x1,x3) z vektora 'x'
-    $sizeOutput = 503;
-    $parsedArray = array();
-    $time = 0;
-    for ($i = 2; $i < $sizeOutput; $i++) {
-        //filter dat do array
-        $splitOutput = explode(" ", $outputOctave[$i]);
-        $splitOutput = array_filter($splitOutput);
-        $splitOutput = array_values($splitOutput);
-        //naplni array
-        $time = round($time + 0.01, 3);
-        $parsedArray[$i - 2] = array('wheel' => $splitOutput[2], 'car' => $splitOutput[0], 'time' => $time);
+        //Parsovanie dat(x1,x3) z vektora 'x'
+        $sizeOutput = 503;
+        $parsedArray = array();
+        $time = 0;
+        for ($i = 2; $i < $sizeOutput; $i++) {
+            //filter dat do array
+            $splitOutput = explode(" ", $outputOctave[$i]);
+            $splitOutput = array_filter($splitOutput);
+            $splitOutput = array_values($splitOutput);
+            //naplni array
+            $time = round($time + 0.01, 3);
+            $parsedArray[$i - 2] = array('wheel' => $splitOutput[2], 'car' => $splitOutput[0], 'time' => $time);
+        }
+        $response['values'] = $parsedArray;
+        //Zapis do json
+        $fp = fopen('output.json', 'w');
+        fwrite($fp, json_encode($response));
+        fclose($fp);
     }
-    $response['values'] = $parsedArray;
-    //Zapis do json
-    $fp = fopen('output.json', 'w');
-    fwrite($fp, json_encode($response));
-    fclose($fp);
-}
 
-//Vypocet commandu cez Octave
-if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
+    //Vypocet commandu cez Octave
+    if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
 
-    $inputCommand = "";
-    if ($_POST['commandSK'] != null) {
-        $inputCommand = $_POST['commandSK'];
+        $inputCommand = "";
+        if ($_POST['commandSK'] != null) {
+            $inputCommand = $_POST['commandSK'];
+        }
+        if ($_POST['commandEN'] != null) {
+            $inputCommand = $_POST['commandEN'];
+        }
+        exec('octave-cli --eval "pkg load control;"' . $inputCommand . '""', $outCommandValue);
+        echo $outCommandValue[0];
     }
-    if ($_POST['commandEN'] != null) {
-        $inputCommand = $_POST['commandEN'];
-    }
-    exec('octave-cli --eval "pkg load control;"'.$inputCommand.'""', $outCommandValue);
-    echo $outCommandValue[0];
 }
 
 ?>
@@ -153,6 +156,9 @@ if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
                             <div class="mb-3">
                                 <input type="submit" id="buttonGraphSK" name="buttonGraphSK" class="btn btn-success graph" value="Spustiť Animáciu">
                             </div>
+                            <div class="mb-3">
+                                <input type="hidden" name="key" class="form-control" value="APIkey2000">
+                            </div>
                         </form>
                     </div>
 
@@ -167,24 +173,27 @@ if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
                             <div class="mb-3">
                                 <input type="submit" name="commandInputSK" class="btn btn-success" value="Výpočet">
                             </div>
+                            <div class="mb-3">
+                                <input type="hidden" name="key" class="form-control" value="APIkey2000">
+                            </div>
                         </form>
                     </div>
 
                     <div class="d-flex justify-content-center">
                         <div class="mb-3">
                             <?php
-                            if (isset($outCommandValue[0])){
-                                ?>
+                            if (isset($outCommandValue[0])) {
+                            ?>
                                 <label class="form-label">------------------------------</label>
                                 <br>
                                 <h4>Výsledok:: </h4>
                                 <br>
                                 <label class="form-label"><?php
-                                    echo $outCommandValue[0];
-                                ?></label>
+                                                            echo $outCommandValue[0];
+                                                            ?></label>
                                 <br>
                                 <label class="form-label">------------------------------</label>
-                                <?php
+                            <?php
                             }
                             ?>
                         </div>
@@ -229,6 +238,9 @@ if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
                             <div class="mb-3">
                                 <input type="submit" id="buttonGraphEN" name="buttonGraphEN" class="btn btn-success graph" value="Start Animation">
                             </div>
+                            <div class="mb-3">
+                                <input type="hidden" name="key" class="form-control" value="APIkey2000">
+                            </div>
                         </form>
                     </div>
 
@@ -243,24 +255,27 @@ if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
                             <div class="mb-3">
                                 <input type="submit" name="commandInputEN" class="btn btn-success" value="Compute">
                             </div>
+                            <div class="mb-3">
+                                <input type="hidden" name="key" class="form-control" value="APIkey2000">
+                            </div>
                         </form>
                     </div>
 
                     <div class="d-flex justify-content-center">
                         <div class="mb-3">
                             <?php
-                            if (isset($outCommandValue[0])){
-                                ?>
+                            if (isset($outCommandValue[0])) {
+                            ?>
                                 <label class="form-label">------------------------------</label>
                                 <br>
                                 <h4>Result:: </h4>
                                 <br>
                                 <label class="form-label"><?php
-                                    echo $outCommandValue[0];
-                                ?></label>
+                                                            echo $outCommandValue[0];
+                                                            ?></label>
                                 <br>
                                 <label class="form-label">------------------------------</label>
-                                <?php
+                            <?php
                             }
                             ?>
                         </div>
@@ -282,10 +297,6 @@ if ($_POST['commandSK'] != null || $_POST['commandEN'] != null) {
                 <canvas id="myChart"></canvas>
             </div>
 
-            <!-- Animacia -->
-            <div class="d-flex justify-content-center" id="divAnimation">
-
-            </div>
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js" integrity="sha512-GMGzUEevhWh8Tc/njS0bDpwgxdCJLQBWG3Z2Ct+JGOpVnEmjvNx6ts4v6A2XJf1HOrtOsfhv3hBKpK9kE5z8AQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

@@ -58,16 +58,16 @@ const config = {
         datasets: [{
             label: 'car',
             borderColor: "red",
-            tension: 0.4,
-            borderWidth: 1,
+            tension: 0.5,
+            borderWidth: 2,
             radius: 0,
             data: data1,
         },
         {
             label: 'wheel',
             borderColor: "blue",
-            tension: 0.4,
-            borderWidth: 1,
+            tension: 0.5,
+            borderWidth: 2,
             radius: 0,
             data: data2,
         }]
