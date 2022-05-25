@@ -95,16 +95,16 @@ var numberOfClicks = 0;
 for (var j = 0; j<2; j++){
     graphButton[j].addEventListener('click', () => {
 
-        // numberOfClicks += 5;
-        // for (var i = 0; i < sizeOutput; i++) {
-        //     data1.push({x: parseFloat(ocataveOutputJson.values[i].time)+numberOfClicks, y: parseFloat(ocataveOutputJson.values[i].wheel)});
-        //     data2.push({x: parseFloat(ocataveOutputJson.values[i].time)+numberOfClicks, y: parseFloat(ocataveOutputJson.values[i].car)});
-        // }
-        // chart.update();
-        // for (var i = 0; i < sizeOutput; i++) {
-        //     data1.shift();
-        //     data2.shift();
-        // }
+        numberOfClicks += 5;
+        for (var i = 0; i < sizeOutput; i++) {
+            data1.push({x: parseFloat(ocataveOutputJson.values[i].time)+numberOfClicks, y: parseFloat(ocataveOutputJson.values[i].wheel)});
+            data2.push({x: parseFloat(ocataveOutputJson.values[i].time)+numberOfClicks, y: parseFloat(ocataveOutputJson.values[i].car)});
+        }
+        chart.update();
+        for (var i = 0; i < sizeOutput; i++) {
+            data1.shift();
+            data2.shift();
+        }
         
     })
 }
