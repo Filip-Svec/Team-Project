@@ -1,0 +1,25 @@
+1,"2022-05-25 06:34:44pm",2,,success
+2,"2022-05-25 06:35:54pm",2,,success
+3,"2022-05-25 06:36:26pm",-1,,success
+5,"2022-05-25 06:38:04pm",ffff,,"error - Not number"
+8,"2022-05-25 06:43:06pm",ffffffff,,"error - Not number"
+9,"2022-05-25 06:44:30pm",2,,success
+10,"2022-05-25 06:44:36pm","2,5",,"error - used ',' instead of '.'"
+11,"2022-05-25 06:47:51pm","2,5",,"error - used ',' instead of '.'"
+15,"2022-05-25 06:49:14pm",,1+1,success
+16,"2022-05-25 06:49:34pm",,234+896,success
+19,"2022-05-25 06:51:45pm",,dsfaasdf,"error - Not number"
+20,"2022-05-25 08:16:05pm",,dsfaasdf,"error - Not number"
+21,"2022-05-25 08:16:11pm",2,,success
+22,"2022-05-25 08:16:26pm",dfgdfsgsdf,,"error - Not number"
+23,"2022-05-25 08:16:35pm",,1+1,success
+24,"2022-05-25 08:16:39pm",,adsfasdf,"error - Not number"
+25,"2022-05-25 08:16:58pm",,"0,2","error - Not number"
+26,"2022-05-25 08:17:17pm",2,,success
+27,"2022-05-25 08:17:45pm",2,,success
+28,"2022-05-25 08:17:48pm","2,5",,"error - used ',' instead of '.'"
+29,"2022-05-25 08:18:01pm",,"2,5","error - used ',' instead of '.'"
+30,"2022-05-25 08:46:25pm",,1+1,success
+31,"2022-05-25 08:56:50pm",,1+1,success
+32,"2022-05-25 08:57:38pm",,1+1,success
+33,"2022-05-25 08:58:42pm",,1+1,success
