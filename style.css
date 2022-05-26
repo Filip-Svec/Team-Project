@@ -1,0 +1,110 @@
+a, a:hover, a:focus, a:active {
+    text-decoration: none;
+    color: inherit;
+}
+
+body {
+    background-color: rgb(173, 219, 230);
+}
+h1{
+    width: 50%;
+    min-width: 300px;
+    text-align: center;
+    font-size:45px;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    padding: 16px;
+    background: linear-gradient(
+        to right bottom,
+        rgba(255, 255, 255, 0.925),
+        rgba(255, 203, 248, 0.747));
+    border-radius: 30px;
+    margin: 30px auto;
+    box-shadow: rgb(255, 206, 206) inset 0px 4px 10px;
+    box-shadow: rgb(59, 59, 59) 0px 4px 10px;
+}
+
+h2{
+    width: 100%;
+    min-width: 100px;
+    text-align: center;
+    font-size:30px;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    padding: 16px;
+    background: linear-gradient(
+        to right bottom,
+        rgba(255, 255, 255, 0.925),
+        rgba(255, 203, 248, 0.747));
+    border-radius: 30px;
+    margin: 30px auto;
+    box-shadow: rgb(255, 206, 206) inset 0px 4px 10px;
+    box-shadow: rgb(59, 59, 59) 0px 4px 10px;
+}
+
+#backboard{
+    justify-content: center;
+    background:white;
+    padding: 20px;
+    background: linear-gradient(
+        to right bottom,
+        rgba(187, 239, 252, 0.774),
+        rgba(255, 210, 97, 0.74)
+    );
+    border-radius: 20px;
+    margin:50px;
+    box-shadow: rgb(255, 206, 206) inset 0px 4px 10px;
+    box-shadow: rgb(59, 59, 59) 0px 4px 10px;
+}
+
+#formBackground1, #formBackground2{
+    background:white;
+    padding: 20px;
+    background: linear-gradient(
+        to right bottom,
+        rgba(209, 252, 255, 0.628),
+        rgba(255, 203, 248, 0.559));
+    border-radius: 20px;
+    margin-top: 5px;
+    margin-bottom: 30px;
+    margin-left: 200px;
+    margin-right: 200px;
+    box-shadow: rgb(255, 206, 206) inset 0px 4px 10px;
+    box-shadow: rgb(59, 59, 59) 0px 4px 10px;
+}
+
+.form-label{
+    font-size:18px;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    background: linear-gradient(
+        to right bottom,
+        rgba(255, 255, 255, 0.26),
+        rgba(255, 203, 248, 0.201));
+    box-shadow: rgba(255, 206, 206, 0.217) inset 0px 2px 5px;
+    box-shadow: rgba(59, 59, 59, 0.107) 0px 2px 5px;
+}
+
+.btn{
+    box-shadow: rgba(255, 206, 206, 0.281) inset 0px 4px 10px;
+    box-shadow: rgba(59, 59, 59, 0.24) 0px 4px 10px;
+}
+
+.form-check{
+    font-size:18px;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    
+    background: linear-gradient(
+        to right bottom,
+        rgba(255, 255, 255, 0.26),
+        rgba(255, 203, 248, 0.201));
+    box-shadow: rgba(255, 206, 206, 0.217) inset 0px 4px 10px;
+    box-shadow: rgba(59, 59, 59, 0.107) 0px 4px 10px;
+}
+
+.navbar {
+    background: linear-gradient(
+        to right bottom,
+        rgba(255, 255, 255, 0.171),
+        rgba(255, 168, 255, 0.29));
+    box-shadow: rgba(255, 206, 206, 0.473) inset 0px 4px 10px;
+    box-shadow: rgba(59, 59, 59, 0.477) 0px 4px 10px;
+}
+
